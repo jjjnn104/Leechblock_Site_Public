@@ -26,5 +26,11 @@ Hinweis: Die Seite nutzt nur relative Pfade (`./styles.css`, `./script.js`) und 
 
 ## Datenschutz
 
-Geburtsdaten werden nur lokal im Browser gespeichert (`localStorage`).
+Geburtsdaten werden nur lokal im Browser gespeichert (`localStorage`) und nach 30 Tagen automatisch entfernt.
 Keine externen APIs, kein Backend.
+
+## Security-Hinweise
+
+- Content-Security-Policy per Meta-Tag (nur `self`, keine fremden Skripte/Objekte).
+- Referrer-Policy: `no-referrer`.
+- Permissions-Policy: browserseitige Features (z. B. Kamera/Mikrofon/Geolocation) sind deaktiviert.

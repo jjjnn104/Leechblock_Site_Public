@@ -2,6 +2,8 @@ const LIFE_EXPECTANCY_YEARS = 78.5;
     const LOCALE = "de-DE";
     const UPDATE_INTERVAL_MS = 33;
     const BIRTH_STORAGE_KEY = "leechblock_birth_iso";
+    const BIRTH_STORAGE_TS_KEY = "leechblock_birth_saved_at";
+    const BIRTH_RETENTION_DAYS = 30;
 
     const DAYS_PER_YEAR = 365.2425;
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -84,6 +86,20 @@ const LIFE_EXPECTANCY_YEARS = 78.5;
 
     function loadBirthFromStorage() {
       const stored = localStorage.getItem(BIRTH_STORAGE_KEY);
+      const savedAtRaw = localStorage.getItem(BIRTH_STORAGE_TS_KEY);
+
+      if (!savedAtRaw || Number.isNaN(Number(savedAtRaw))) {
+        clearBirthFromStorage();
+        return null;
+      }
+
+      const ageMs = Date.now() - Number(savedAtRaw);
+      const retentionMs = BIRTH_RETENTION_DAYS * MS_PER_DAY;
+      if (ageMs > retentionMs) {
+        clearBirthFromStorage();
+        return null;
+      }
+
       if (!isValidBirthIso(stored)) {
         return null;
       }
@@ -92,10 +108,23 @@ const LIFE_EXPECTANCY_YEARS = 78.5;
 
     function saveBirthToStorage(isoString) {
       localStorage.setItem(BIRTH_STORAGE_KEY, isoString);
+      localStorage.setItem(BIRTH_STORAGE_TS_KEY, String(Date.now()));
     }
 
     function clearBirthFromStorage() {
       localStorage.removeItem(BIRTH_STORAGE_KEY);
+      localStorage.removeItem(BIRTH_STORAGE_TS_KEY);
+    }
+
+    function isBirthInAllowedRange(isoString) {
+      const birth = new Date(isoString);
+      if (Number.isNaN(birth.getTime())) {
+        return false;
+      }
+
+      const now = new Date();
+      const maxPast = new Date(now.getFullYear() - 120, now.getMonth(), now.getDate());
+      return birth <= now && birth >= maxPast;
     }
 
     function showSetupOverlay(message, prefillValue) {
@@ -285,8 +314,8 @@ const LIFE_EXPECTANCY_YEARS = 78.5;
       view.setupForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const normalized = normalizeBirthValue(view.birthInput.value.trim());
-        if (!normalized || !isValidBirthIso(normalized)) {
-          showSetupOverlay("Bitte ein gueltiges Datum und eine Uhrzeit eingeben.", view.birthInput.value);
+        if (!normalized || !isValidBirthIso(normalized) || !isBirthInAllowedRange(normalized)) {
+          showSetupOverlay("Bitte ein realistisches Datum in der Vergangenheit eingeben.", view.birthInput.value);
           return;
         }
 
@@ -322,4 +351,3 @@ const LIFE_EXPECTANCY_YEARS = 78.5;
     }
 
     bootstrap();
-
