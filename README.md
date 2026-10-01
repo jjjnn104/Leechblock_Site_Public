@@ -27,7 +27,19 @@ Hinweis: Die Seite nutzt nur relative Pfade (`./styles.css`, `./script.js`) und 
 ## Datenschutz
 
 Geburtsdaten werden nur lokal im Browser gespeichert (`localStorage`) und nach 30 Tagen automatisch entfernt.
+Die Frist wird beim Laden der Seite geprueft und durch erneutes Laden nicht verlaengert.
+Bei bestehenden Eintraegen ohne Speicherzeitstempel beginnt die 30-Tage-Frist einmalig
+mit der ersten Migration; das Geburtsdatum bleibt dabei erhalten.
 Keine externen APIs, kein Backend.
+
+## Tests
+
+Mit Node.js ab Version 18, ohne zusaetzliche Abhaengigkeiten:
+
+```sh
+node --check script.js
+node --test tests/birth-storage.test.js
+```
 
 ## Security-Hinweise
 

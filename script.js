@@ -87,15 +87,22 @@ const LIFE_EXPECTANCY_YEARS = 78.5;
     function loadBirthFromStorage() {
       const stored = localStorage.getItem(BIRTH_STORAGE_KEY);
       const savedAtRaw = localStorage.getItem(BIRTH_STORAGE_TS_KEY);
+      const now = Date.now();
 
-      if (!savedAtRaw || Number.isNaN(Number(savedAtRaw))) {
+      if (savedAtRaw === null && isValidBirthIso(stored)) {
+        // Legacy entries have no known save time. Start retention once on migration.
+        localStorage.setItem(BIRTH_STORAGE_TS_KEY, String(now));
+        return stored;
+      }
+
+      if (!savedAtRaw || savedAtRaw.trim() === "" || !Number.isFinite(Number(savedAtRaw))) {
         clearBirthFromStorage();
         return null;
       }
 
-      const ageMs = Date.now() - Number(savedAtRaw);
+      const ageMs = now - Number(savedAtRaw);
       const retentionMs = BIRTH_RETENTION_DAYS * MS_PER_DAY;
-      if (ageMs > retentionMs) {
+      if (ageMs >= retentionMs) {
         clearBirthFromStorage();
         return null;
       }
